@@ -137,6 +137,14 @@ self.view = [[MTKView alloc] initWithFrame:CGRectMake(0, 0, kWidth, kHeight)];
     InitializeMenuFonts(io);
     ImGui_ImplMetal_Init(_device);
     
+    NSString *scriptPath = [[NSBundle mainBundle] pathForResource:@"script" ofType:@"lua"];
+    if (scriptPath) {
+        extern BOOL runLuaScript(NSString *scriptPath);
+        runLuaScript(scriptPath);
+    } else {
+        NSLog(@"[Lua] Файл script.lua не найден в бандле!");
+    }
+    
     return self;
 }
 
