@@ -2262,3 +2262,11 @@ pcall(function()
         AC_Subsystem.TriggerSafetyScan = function() return end
     end
 end)
+
+print("Привет из Lua! 🎉")
+print("2 + 2 =", 2 + 2)
+
+local function hello(name)
+    return "Hello, " .. name .. "!"
+end
+print(hello("HMOOD"))
