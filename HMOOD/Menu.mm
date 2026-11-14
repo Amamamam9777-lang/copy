@@ -1489,6 +1489,9 @@ namespace CyberMenu {
         Reference& brand = artwork(1);
         if (brand.texture) {
             const float width = 610.f, height = width * brand.h / brand.w;
+            // The brand artwork has a transparent canvas; restore only its black backing.
+            // The removed outer metallic frame remains intentionally absent.
+            c.rect(220, 27, width, height, IM_COL32(0, 0, 0, 255));
             c.dl->AddImage((__bridge ImTextureID)brand.texture, c.p(220, 27), c.p(220 + width, 27 + height),
                            {0, 0}, {1, 1}, IM_COL32(225, 227, 232, 255));
         } else {
@@ -2375,7 +2378,7 @@ namespace CyberMenu {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
         bool visible =
             ImGui::Begin("##flexmenu", &MenDeal,
                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
