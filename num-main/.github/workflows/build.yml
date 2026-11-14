@@ -1,0 +1,62 @@
+name: Build Dylib with Theos
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Theos
+        uses: randomblock1/theos-action@v1
+        with:
+          theos-path: ${{ github.workspace }}/theos
+
+      - name: Fix SDK Naming
+        run: |
+          export LC_ALL=C
+          cd HMOOD/SDK || exit 1
+          for file in Dolphin-Plus_*; do
+            if [ -f "$file" ]; then
+              mv "$file" "$(echo "$file" | sed 's/Dolphin-Plus_/SHANKS_PUBGM_/g')"
+            fi
+          done
+          cd ../..
+          find . -type f \( -name "*.hpp" -o -name "*.cpp" -o -name "*.h" -o -name "*.mm" \) -exec sed -i '' 's/Dolphin-Plus_/SHANKS_PUBGM_/g' {} +
+
+      - name: Build with Theos
+        run: |
+          export THEOS=$GITHUB_WORKSPACE/theos
+          make clean || true
+          make
+
+      - name: Verify Dylib Dependencies
+        run: |
+          DYLIB_PATH=$(find .theos -name "HMOOD_FUCK_MAX.dylib" -type f | head -n 1)
+          echo "=== Найден: $DYLIB_PATH ==="
+          echo "=== Зависимости: ==="
+          otool -L "$DYLIB_PATH"
+          echo "=== Проверка Substrate: ==="
+          if otool -L "$DYLIB_PATH" | grep -qi "substrate\|CydiaSubstrate"; then
+            echo "❌ ВНИМАНИЕ: зависимость от Substrate всё ещё есть!"
+          else
+            echo "✅ Зависимости от Substrate НЕТ!"
+          fi
+          # Проверяем, есть ли неразрешенные символы (это нормально, инжектор их разрешит)
+          echo "=== Неразрешённые символы: ==="
+          nm -u "$DYLIB_PATH" | grep -i "MSHook\|DobbyHook" || echo "Хуков MSHook/Dobby нет"
+
+      - name: Upload Dylib
+        run: |
+          DYLIB_PATH=$(find .theos -name "HMOOD_FUCK_MAX.dylib" -type f | head -n 1)
+          cp "$DYLIB_PATH" ./HMOOD_FUCK_MAX.dylib
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HMOOD_FUCK_MAX-dylib
+          path: HMOOD_FUCK_MAX.dylib
