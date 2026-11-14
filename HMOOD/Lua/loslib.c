@@ -3,7 +3,9 @@
 ** Standard Operating System library
 ** See Copyright Notice in lua.h
 */
-
+#if defined(APPLE)
+#include <TargetConditionals.h>
+#endif
 #define loslib_c
 #define LUA_LIB
 
@@ -146,17 +148,21 @@
 #endif
 
 
-static int os_execute(lua_State* L) {
-    const char* cmd = luaL_optstring(L, 1, NULL);
-    int         stat;
-    errno = 0;
-    stat  = l_system(cmd);
-    if (cmd != NULL)
-        return luaL_execresult(L, stat);
-    else {
-        lua_pushboolean(L, stat); /* true if there is a shell */
-        return 1;
-    }
+static int os_execute (lua_State *L) {
+  const char *cmd = luaL_optstring(L, 1, NULL);
+  int stat;
+  errno = 0;
+#if defined(APPLE) && !TARGET_OS_OSX
+  stat = 127;  /* system() is __IOS_PROHIBITED on iOS */
+#else
+  stat = l_system(cmd);
+#endif
+  if (cmd != NULL)
+    return luaL_execresult(L, stat);
+  else {
+    lua_pushboolean(L, stat);  /* true if there is a shell */
+    return 1;
+  }
 }
 
 
