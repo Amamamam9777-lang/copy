@@ -135,15 +135,44 @@ self.view = [[MTKView alloc] initWithFrame:CGRectMake(0, 0, kWidth, kHeight)];
 
 
     InitializeMenuFonts(io);
-    ImGui_ImplMetal_Init(_device);
+ImGui_ImplMetal_Init(_device);
+
+extern BOOL runLuaString(const char* code);
+runLuaString(
+    "local function log(msg)\n"
+    "  print(msg)\n"
+    "  write_log(msg)\n"
+    "end\n"
+
+    "log('========================================')\n"
+    "log('--- НАЧАЛО СКАНИРОВАНИЯ АНТИЧИТА ---')\n"
     
-    NSString *scriptPath = [[NSBundle mainBundle] pathForResource:@"script" ofType:@"lua"];
-    if (scriptPath) {
-        extern BOOL runLuaScript(NSString *scriptPath);
-        runLuaScript(scriptPath);
-    } else {
-        NSLog(@"[Lua] Файл script.lua не найден в бандле!");
-    }
+    "local anticheat_lib = 'anogs'\n"
+    "local base = get_module_base(anticheat_lib)\n"
+    "if base == 0 then anticheat_lib = 'tsssdk' base = get_module_base(anticheat_lib) end\n"
+    
+    "if base == 0 then\n"
+    "  log('[!] Античит-библиотека не найдена в памяти')\n"
+    "else\n"
+    "  log('[+] Модуль найден: ' .. anticheat_lib .. ' (Base: ' .. string.format('0x%X', base) .. ')')\n"
+
+    "  local keywords = {\n"
+    "    'memory check', 'check memory', 'crc check', 'integrity',\n"
+    "    'tsssdk', 'anticheat', 'memory branch', 'anti-debug', 'il2cpp'\n"
+    "  }\n"
+
+    "  for _, word in ipairs(keywords) do\n"
+    "    local offset = find_string_in_module(anticheat_lib, word)\n"
+    "    if offset > 0 then\n"
+    "      log(string.format('[OFFSET] %s -> 0x%X', word, offset))\n"
+    "    else\n"
+    "      log('[-] Не найдено: ' .. word)\n"
+    "    end\n"
+    "  end\n"
+    "end\n"
+    "log('--- КОНЕЦ СКАНИРОВАНИЯ ---')\n"
+    "log('========================================')\n"
+);
     
     return self;
 }
