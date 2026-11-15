@@ -35,7 +35,7 @@ static int lua_find_string_in_module(lua_State *L) {
     for (uint32_t i = 0; i < _dyld_image_count(); i++) {
         const char *name = _dyld_get_image_name(i);
         if (name && strstr(name, module_name)) {
-            const struct mach_header_64 *header = _dyld_get_image_header(i);
+            const struct mach_header_64 *header = (const struct mach_header_64 *)_dyld_get_image_header(i);
             base = (uintptr_t)header;
             
             // Получаем размер модуля через load commands (сегмент __TEXT)
