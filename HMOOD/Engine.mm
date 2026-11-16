@@ -2283,7 +2283,7 @@ void  *RTL_language(){
         
         // --- НАЧАЛО БАЙПАСА ANOGS ---
         NSLog(@"[Engine] Trying to apply Anogs bypass...");
-        AnogsBypass::Apply();
+     // AnogsBypass::Apply();
         // --- КОНЕЦ БАЙПАСА ANOGS ---
     });
 }
