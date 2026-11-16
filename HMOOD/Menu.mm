@@ -1484,17 +1484,19 @@ namespace CyberMenu {
 
 
     static void frame(const Canvas& c) {
-        // WOLF clean layout: outer metallic/chrome frame intentionally removed.
-        // Keep the WOLF title artwork; the content panels and navigation remain unchanged.
-        Reference& brand = artwork(1);
+        // Solid black canvas behind the WOLF mark; no outer decorative frame.
+        c.rect(0, 0, 1024, 676, IM_COL32(0, 0, 0, 255), 0);
+        Reference& brand = artwork(2);
         if (brand.texture) {
-            const float width = 610.f, height = width * brand.h / brand.w;
-            c.dl->AddImage((__bridge ImTextureID)brand.texture, c.p(220, 27), c.p(220 + width, 27 + height),
-                           {0, 0}, {1, 1}, IM_COL32(225, 227, 232, 255));
+            const float width = 94.f, height = width * brand.h / brand.w;
+            const float x = 512.f - width * .5f;
+            c.dl->AddImage((__bridge ImTextureID)brand.texture, c.p(x, 7),
+                           c.p(x + width, 7 + height), {0, 0}, {1, 1},
+                           IM_COL32(255, 255, 255, 255));
         } else {
             const float titleSize = 44.f;
             const float textWidth = ImGui::GetFont()->CalcTextSizeA(titleSize, FLT_MAX, 0, "WOLF").x;
-            c.text(540.f - textWidth * .5f, 60, "WOLF", titleSize, White);
+            c.text(512.f - textWidth * .5f, 40, "WOLF", titleSize, White);
         }
     }
 
@@ -1517,42 +1519,60 @@ namespace CyberMenu {
     }
 
     static void navigation(const Canvas& c, int& page) {
-        if (!highQualityFrame().texture)
-            c.rect(52, 151, 185, 453, IM_COL32(8, 10, 13, 255));
-        const float dstY[] = {159, 247, 335, 423, 511};
-        const char* ids[] = {"##cyber_home", "##cyber_visual", "##cyber_aim", "##cyber_memory",
-                             "##cyber_settings"};
-        const char* labels[] = {"HOME", "ESP RADAR", "AIMBOT", "Memory", "SETTINGS"};
-         
+        const float x[] = {20.f, 222.f, 424.f, 626.f, 828.f};
+        const char* ids[] = {"##cyber_home", "##cyber_visual", "##cyber_aim",
+                             "##cyber_memory", "##cyber_settings"};
+        const char* labels[] = {"News", "Visuals", "Aimbot", "Memory", "Settings"};
         for (int i = 0; i < 5; ++i)
-            if (hit(c, ids[i], 64, dstY[i], 166, 79))
+            if (hit(c, ids[i], x[i], 100.f, 180.f, 49.f))
                 page = i;
+
         for (int i = 0; i < 5; ++i) {
             const bool selected = page == i;
-            Reference& face = navigationTexture(i, selected);
-            if (face.texture) {
-                c.dl->AddImage((__bridge ImTextureID)face.texture, c.p(64, dstY[i]), c.p(230, dstY[i] + 79));
-                if (MenuLocale::language != 0) {
-                    const float left = 121.f, top = dstY[i] + 22.f, width = 101.f, height = 36.f;
-                    c.rect(left, top, width, height,
-                           selected ? IM_COL32(5, 17, 13, 255) : IM_COL32(11, 8, 12, 255), 2.f);
-                    c.dl->PushClipRect(c.p(left, top), c.p(left + width, top + height), true);
-                    for (int offset = -36; offset < 110; offset += 5)
-                        c.line(left + offset, top + height, left + offset + height, top,
-                               IM_COL32(48, 53, 54, 32), .7f);
-                    c.dl->PopClipRect();
-                    c.text(left + 4.f, top + 6.f, labels[i], 18.f, selected ? Green : White, width - 8.f);
-                }
+            const ImU32 border = selected ? IM_COL32(44, 119, 255, 255)
+                                          : IM_COL32(0, 153, 255, 255);
+            const ImU32 label = selected ? IM_COL32(245, 248, 255, 255)
+                                         : IM_COL32(107, 220, 255, 255);
+            if (selected) {
+                c.dl->AddRectFilled(c.p(x[i]-2, 98), c.p(x[i]+182, 151),
+                                    IM_COL32(0, 35, 105, 105), 14.f*c.scale);
+                c.dl->AddRect(c.p(x[i]-2, 98), c.p(x[i]+182, 151),
+                              IM_COL32(33, 107, 255, 255), 14.f*c.scale, 0, 1.7f*c.scale);
+                c.dl->AddRect(c.p(x[i]-5, 95), c.p(x[i]+185, 154),
+                              IM_COL32(15, 87, 255, 100), 17.f*c.scale, 0, 2.f*c.scale);
             } else {
-                panel(c, 64, dstY[i], 166, 79, selected ? Green : Red);
-                c.dl->AddRect(c.p(66, dstY[i] + 3), c.p(228, dstY[i] + 76),
-                              selected ? IM_COL32(78, 99, 94, 255) : Red, 7 * c.scale, 0, 2 * c.scale);
-                if (selected) {
-                    c.rect(64, dstY[i] + 7, 3, 65, Cyan, 1);
-                    c.rect(125, dstY[i] + 68, 42, 3, Green, 1);
-                }
-                c.text(80, dstY[i] + 26, labels[i], 22, selected ? Green : White, 142);
+                c.dl->AddRect(c.p(x[i], 100), c.p(x[i]+180, 149),
+                              border, 14.f*c.scale, 0, 1.1f*c.scale);
             }
+            // Simple luminous glyphs echo the supplied reference without adding a frame.
+            const float cx = x[i] + 29.f, cy = 124.f;
+            if (i == 0) {
+                c.dl->AddCircle(c.p(cx, cy-3), 5.f*c.scale, label, 0, 1.8f*c.scale);
+                c.dl->AddLine(c.p(cx, cy+3), c.p(cx, cy+17), label, 2.2f*c.scale);
+                c.dl->AddLine(c.p(cx-8, cy+17), c.p(cx+8, cy+17), label, 2.2f*c.scale);
+                c.dl->PathArcTo(c.p(cx, cy-3), 12.f*c.scale, 3.75f, 5.68f, 20);
+                c.dl->PathStroke(label, 0, 2.f*c.scale);
+                c.dl->PathArcTo(c.p(cx, cy-3), 18.f*c.scale, 3.75f, 5.68f, 20);
+                c.dl->PathStroke(label, 0, 2.f*c.scale);
+            } else if (i == 1) {
+                c.dl->AddCircle(c.p(cx,cy), 10.f*c.scale, label, 0, 2.f*c.scale);
+                c.dl->AddCircleFilled(c.p(cx,cy), 3.5f*c.scale, label, 16);
+                c.dl->AddLine(c.p(cx-13,cy-11),c.p(cx-8,cy-16),label,1.5f*c.scale);
+                c.dl->AddLine(c.p(cx+13,cy-11),c.p(cx+8,cy-16),label,1.5f*c.scale);
+            } else if (i == 2) {
+                c.dl->AddCircle(c.p(cx,cy), 13.f*c.scale, label, 0, 1.8f*c.scale);
+                c.dl->AddCircle(c.p(cx,cy), 5.f*c.scale, label, 0, 1.8f*c.scale);
+                c.dl->AddLine(c.p(cx-19,cy),c.p(cx+19,cy),label,1.5f*c.scale);
+                c.dl->AddLine(c.p(cx,cy-19),c.p(cx,cy+19),label,1.5f*c.scale);
+            } else if (i == 3) {
+                c.dl->AddRect(c.p(cx-14,cy-10),c.p(cx+14,cy+10),label,2.f*c.scale,0,1.8f*c.scale);
+                c.text(cx-11,cy-7,"RAM",10.f,label,22.f);
+                c.dl->AddLine(c.p(cx-10,cy+14),c.p(cx+10,cy+14),label,1.5f*c.scale);
+            } else {
+                c.dl->AddCircle(c.p(cx,cy), 11.f*c.scale, label, 0, 4.f*c.scale);
+                c.dl->AddCircleFilled(c.p(cx,cy), 4.f*c.scale, label, 16);
+            }
+            c.text(x[i]+81.f, 115.f, labels[i], 17.f, label, 94.f);
         }
     }
 
@@ -1833,123 +1853,14 @@ namespace CyberMenu {
     }
 
     static void home(const Canvas& canvas) {
-         
-         
         Canvas c = canvas;
-        c.origin = canvas.p(261, 158);
-        c.scale = canvas.scale * (419.f / 373.f);
-        c.stretchX = (699.f / 604.f) / (419.f / 373.f);
-        c.stretchY = 1.f;
-        const Stats& st = stats();
-        char fps[32];
-        snprintf(fps, sizeof(fps), "%.0f FPS", st.fps);
-        homePanel(c, 12, 15, 328, 219);
-        homePanel(c, 355, 15, 240, 219);
-         
-        c.dl->AddRectFilledMultiColor(c.p(17, 22), c.p(335, 59), IM_COL32(23, 7, 13, 255),
-                                      IM_COL32(25, 7, 14, 255), IM_COL32(31, 6, 14, 255),
-                                      IM_COL32(28, 6, 13, 255));
-        c.dl->AddRectFilledMultiColor(c.p(17, 59), c.p(335, 64), IM_COL32(28, 6, 13, 150),
-                                      IM_COL32(31, 6, 14, 150), IM_COL32(12, 8, 12, 0),
-                                      IM_COL32(12, 8, 12, 0));
-        homeText(c, 28, 31, "WOLF", 17.5f, White, 274);
-         
-        c.dl->AddCircleFilled(c.p(308.5f, 39.5f), 9 * c.scale, IM_COL32(0, 235, 126, 14), 28);
-        c.dl->AddCircleFilled(c.p(308.5f, 39.5f), 7.5f * c.scale, IM_COL32(0, 235, 126, 24), 28);
-        icon(c, Check, 302, 33, 13, IM_COL32(0, 224, 119, 255));
-         
-         
-        c.line(337.4f, 160, 337.4f, 224, IM_COL32(6, 5, 9, 235), 1.f);
-        for (int pass = 0; pass < 3; ++pass) {
-            const ImU32 edge = pass == 0   ? IM_COL32(27, 108, 226, 16)
-                               : pass == 1 ? IM_COL32(25, 103, 216, 55)
-                                           : IM_COL32(23, 92, 192, 210);
-            const float width = pass == 0 ? 5.f : pass == 1 ? 2.6f : .85f;
-            c.line(339.3f, 168, 339.3f, 225, edge, width);
-            c.dl->AddBezierCubic(c.p(339.3f, 225), c.p(339.3f, 232), c.p(338, 233.3f), c.p(330, 233.3f), edge,
-                                 width * c.scale, 16);
-            c.line(315, 233.3f, 330, 233.3f, edge, width);
-        }
-        c.line(339.3f, 145, 339.3f, 168, IM_COL32(13, 55, 115, 155), .7f);
-        statusTile(c, 27, 68, 296, "SERVER", "NOT CONFIGURED", Muted, -1);
-        statusTile(c, 27, 120, 141, "FPS", fps, HomeCyan, Gauge);
-        statusTile(c, 183, 120, 140, "LICENSE", "UNAVAILABLE", Muted, Shield);
-        statusTile(c, 27, 172, 141, "SUBSCRIPTION", "--", HomeCyan, Cloud);
-        statusTile(c, 183, 172, 140, "DEVICE LINK", st.device.c_str(), White, Link);
-        for (int i = 0; i < 10; ++i) {
-            const float x = 28 + i * 29.5f;
-            c.rect(x, 221, 26, 3, HomeCyan, .5f);
-            c.line(x + .7f, 221.4f, x + 25.3f, 221.4f, IM_COL32(123, 232, 239, 100), .65f);
-        }
-        homeText(c, 369, 32, "CONTACT", 15, Red, 207);
-        homeAction(c, 369, 82, 211, 40);
-        icon(c, PaperPlane, 381, 94, 14);
-        homeText(c, 412, 94, "TELEGRAM", 14, IM_COL32(174, 177, 184, 255), 162);
-        if (hit(c, "##telegram_channel", 369, 82, 211, 40))
-            openChannel();
-        homeAction(c, 369, 136, 211, 40);
-        icon(c, Headset, 381, 148, 14);
-        homeText(c, 412, 148, "SUPPORT", 14, IM_COL32(174, 177, 184, 255), 162);
-        if (hit(c, "##support_channel", 369, 136, 211, 40))
-            openChannel();
-        c.rect(369, 186, 211, 39, IM_COL32(7, 21, 30, 255), 3);
-        c.dl->AddRect(c.p(369, 186), c.p(580, 225), IM_COL32(14, 35, 45, 160), 3 * c.scale, 0, .7f * c.scale);
-        icon(c, Gamepad, 380, 198, 17, HomeCyan);
-        homeText(c, 408, 190, "LOCAL MODE", 10, HomeLabel, 166);
-        homeText(c, 408, 207, hideHacker ? "STREAM: ON" : "STREAM: OFF", 10.5f, White, 166);
-
-        homePanel(c, 12, 263, 189, 96);
-        homePanel(c, 212, 263, 184, 96);
-        homePanel(c, 407, 263, 188, 96);
-        c.dl->AddCircleFilled(c.p(27, 278), 3.3f * c.scale, Green, 18);
-        homeText(c, 40, 270, "WOLF", 12.5f, Red, 148);
-        homeText(c, 27, 305, st.device.c_str(), 14, White, 160);
-        homeText(c, 27, 333, (std::string(MenuLocale::tr("OS")) + " iOS " + st.ios).c_str(), 11.5f, IM_COL32(154, 139, 90, 255),
-                 161);
-        for (int i = 0; i < 5; ++i)
-            c.rect(220 + i * 4.5f, 280 - i * 3, 2.8f, 4 + i * 3, Green, .5f);
-        homeText(c, 251, 271, "DEVICE", 10, Muted, 95);
-        homeText(c, 355, 271, "LIVE", 10, HomeCyan, 44);
-        auto center = [&](float x, float y, const char* text, float height, ImU32 color, float cap = 0.f) {
-            homeText(c, x, y, text, height, color, 0, cap, true);
-        };
-        center(304, 292, st.time.c_str(), 21, White, 12.8f);
-        center(304, 319, "--", 10.5f, HomeCyan);
-        center(304, 342, st.date.c_str(), 10.5f, Muted);
-        char battery[24];
-        if (st.battery >= 0)
-            snprintf(battery, sizeof(battery), "%.0f%%", st.battery * 100);
-        else
-            snprintf(battery, sizeof(battery), "--");
-        const float charge = ImClamp(st.battery, 0.f, 1.f);
-        const ImU32 batteryColor = charge <= .2f ? Red : charge <= .4f ? IM_COL32(200, 177, 72, 255) : Green;
-        c.dl->AddRect(c.p(419, 273), c.p(443, 283), IM_COL32(132, 138, 141, 255), 2 * c.scale, 0,
-                      1.1f * c.scale);
-        c.rect(443, 276, 2, 4, IM_COL32(132, 138, 141, 255), .5f);
-        if (st.battery >= 0)
-            for (int i = 0; i < 5; ++i) {
-                const float portion = ImClamp(charge * 5 - i, 0.f, 1.f);
-                if (portion > 0)
-                    c.rect(421 + i * 4.1f, 275, 3.1f * portion, 6, batteryColor, .45f);
-            }
-        homeText(c, 450, 271, battery, 11, Green, 51);
-        homeText(c, 507, 271, fps, 11.5f, HomeCyan, 78);
-        char ram[40];
-        if (st.freeGB >= 0)
-            snprintf(ram, sizeof(ram), "%s: %.2f GB", MenuLocale::tr("RAM"), st.freeGB);
-        else
-            snprintf(ram, sizeof(ram), "%s: --", MenuLocale::tr("RAM"));
-        homeText(c, 421, 305, ram, 12.5f, White, 158);
-        c.rect(421, 335, 156, 8, IM_COL32(9, 28, 36, 255), 2);
-        c.dl->AddRect(c.p(421, 335), c.p(577, 343), IM_COL32(15, 37, 45, 155), 2 * c.scale, 0, .6f * c.scale);
-        const float freeFraction =
-            st.totalGB > 0 && st.freeGB >= 0 ? ImClamp(st.freeGB / st.totalGB, 0.f, 1.f) : 0.f;
-        const float fill = 156 * freeFraction;
-        if (fill > 0) {
-            c.rect(421, 335, fill, 8, HomeCyan, 2);
-            if (fill > 2)
-                c.line(422, 335.8f, 420 + fill, 335.8f, IM_COL32(129, 238, 243, 135), .75f);
-        }
+        c.rect(20.f, 163.f, 984.f, 510.f, IM_COL32(0,0,0,255), 16.f);
+        c.dl->AddRect(c.p(20.f,163.f), c.p(1004.f,673.f),
+                      IM_COL32(0,153,255,255), 16.f*c.scale, 0, 1.5f*c.scale);
+        c.text(43.f, 174.f, "News", 20.f, IM_COL32(245,247,250,255), 180.f);
+        c.line(20.f, 204.f, 1004.f, 204.f, IM_COL32(0,153,255,255), 1.4f);
+        c.text(26.f, 219.f, "Initial release 1.0 - WOLF 2026 (5th Anniversary)",
+               18.f, IM_COL32(245,245,248,255), 950.f);
     }
 
 // HMOOD__TG@i_8_f
@@ -2375,7 +2286,7 @@ namespace CyberMenu {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
         bool visible =
             ImGui::Begin("##flexmenu", &MenDeal,
                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
@@ -2389,10 +2300,7 @@ namespace CyberMenu {
             static int page = 0;
             frame(c);
             navigation(c, page);
-            if (closeButton(c))
-                MenDeal = false;
             motion.update(page);
-            headerSweep(c, motion.age);
             Canvas pageCanvas = c;
             pageCanvas.origin.x += motion.offset() * scale;
             pageCanvas.switchReveal = motion.switches();
