@@ -137,12 +137,6 @@ self.view = [[MTKView alloc] initWithFrame:CGRectMake(0, 0, kWidth, kHeight)];
     InitializeMenuFonts(io);
     ImGui_ImplMetal_Init(_device);
     
-    extern BOOL runLuaString(const char* code);
-    runLuaString(
-        "print('Lua работает без крашей!')\n"
-        "write_log('Тестовый лог записан.')\n"
-    );
-    
     return self;
 }
 
@@ -2277,14 +2271,10 @@ void  *RTL_language(){
 // HMOOD__TG@i_8_f
 + (void)load1
 {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         RTL_language();
-        
-        // --- НАЧАЛО БАЙПАСА ANOGS ---
-        NSLog(@"[Engine] Trying to apply Anogs bypass...");
-     // AnogsBypass::Apply();
-        // --- КОНЕЦ БАЙПАСА ANOGS ---
     });
 }
+
 
 @end
