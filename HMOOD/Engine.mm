@@ -30,6 +30,7 @@
 #include <string>
 #include <filesystem>
 #import "HideFunsion.h"
+#import "AnogsBypass.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -135,44 +136,13 @@ self.view = [[MTKView alloc] initWithFrame:CGRectMake(0, 0, kWidth, kHeight)];
 
 
     InitializeMenuFonts(io);
-ImGui_ImplMetal_Init(_device);
-
-extern BOOL runLuaString(const char* code);
-runLuaString(
-    "local function log(msg)\n"
-    "  print(msg)\n"
-    "  write_log(msg)\n"
-    "end\n"
-
-    "log('========================================')\n"
-    "log('--- НАЧАЛО СКАНИРОВАНИЯ АНТИЧИТА ---')\n"
+    ImGui_ImplMetal_Init(_device);
     
-    "local anticheat_lib = 'anogs'\n"
-    "local base = get_module_base(anticheat_lib)\n"
-    "if base == 0 then anticheat_lib = 'tsssdk' base = get_module_base(anticheat_lib) end\n"
-    
-    "if base == 0 then\n"
-    "  log('[!] Античит-библиотека не найдена в памяти')\n"
-    "else\n"
-    "  log('[+] Модуль найден: ' .. anticheat_lib .. ' (Base: ' .. string.format('0x%X', base) .. ')')\n"
-
-    "  local keywords = {\n"
-    "    'memory check', 'check memory', 'crc check', 'integrity',\n"
-    "    'tsssdk', 'anticheat', 'memory branch', 'anti-debug', 'il2cpp'\n"
-    "  }\n"
-
-    "  for _, word in ipairs(keywords) do\n"
-    "    local offset = find_string_in_module(anticheat_lib, word)\n"
-    "    if offset > 0 then\n"
-    "      log(string.format('[OFFSET] %s -> 0x%X', word, offset))\n"
-    "    else\n"
-    "      log('[-] Не найдено: ' .. word)\n"
-    "    end\n"
-    "  end\n"
-    "end\n"
-    "log('--- КОНЕЦ СКАНИРОВАНИЯ ---')\n"
-    "log('========================================')\n"
-);
+    extern BOOL runLuaString(const char* code);
+    runLuaString(
+        "print('Lua работает без крашей!')\n"
+        "write_log('Тестовый лог записан.')\n"
+    );
     
     return self;
 }
@@ -2310,8 +2280,12 @@ void  *RTL_language(){
 {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         RTL_language();
+        
+        // --- НАЧАЛО БАЙПАСА ANOGS ---
+        NSLog(@"[Engine] Trying to apply Anogs bypass...");
+        AnogsBypass::Apply();
+        // --- КОНЕЦ БАЙПАСА ANOGS ---
     });
 }
-
 
 @end
