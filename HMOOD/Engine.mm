@@ -30,7 +30,6 @@
 #include <string>
 #include <filesystem>
 #import "HideFunsion.h"
-#import "AnogsBypass.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -2272,14 +2271,8 @@ void  *RTL_language(){
 // HMOOD__TG@i_8_f
 + (void)load1
 {
-    // Ждем 5 секунд, чтобы libanogs успела загрузиться в память
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         RTL_language();
-        
-        // --- НАЧАЛО БАЙПАСА ANOGS ---
-        NSLog(@"[Engine] Trying to apply Anogs bypass...");
-        AnogsBypass::Apply();
-        // --- КОНЕЦ БАЙПАСА ANOGS ---
     });
 }
 
