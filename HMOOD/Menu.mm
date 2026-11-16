@@ -29,6 +29,7 @@
 #include "menu.h"
 #import <sys/sysctl.h>
 #import <sys/stat.h>
+#import "BypassChecker.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <pthread.h>
@@ -2346,22 +2347,42 @@ void DrawMenuHudBadge(ImDrawList* draw, ImVec2 center, float diameter) {
                    ImVec2(center.x + radius, center.y + radius));
 }
 
-// HMOOD__TG@i_8_f
-void RenderMenu() {
-    MenuLocale::beginFrame();
-    CGFloat x =
-        (([UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.width) - 360) / 2;
-    CGFloat y =
-        (([UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.height) - 360) / 2;
+// HMOOD__TG@i_8_f 
+void RenderMenu() { 
+    MenuLocale::beginFrame(); 
+    CGFloat x = (([UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.width) - 360) / 2; 
+    CGFloat y = (([UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.height) - 360) / 2;
 
     ImGuiIO& Io = ImGui::GetIO();
     ImVec2 scr = ImGui::GetIO().DisplaySize;
     ImVec2 winSz = ImVec2(635, 300);
 
+    // ========================================================
+    // НАШ БЛОК ПРОВЕРКИ СТАТУСА (рисуем его отдельным окном в левом верхнем углу)
+    // ========================================================
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver); // Позиция: X=10, Y=10
+    ImGui::SetNextWindowSize(ImVec2(320, 70), ImGuiCond_FirstUseEver);
+    
+    // Рисуем окно. Убираем заголовок, чтобы выглядело стильно
+    ImGui::Begin("BypassStatusWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+    
+    ImGui::Text("SECURITY STATUS:");
+    if (BypassChecker::IsAnogsPatched()) {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Anogs Bypass: ACTIVE (Protected)");
+    } else {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Anogs Bypass: FAILED (Update Offsets!)");
+    }
+    
+    ImGui::End();
+    // ========================================================
+
+    // Твой оригинальный код для главного окна меню
     ImGui::SetNextWindowPos(ImVec2(scr.x * 0.5f - winSz.x * 0.5f, scr.y * 0.5f - winSz.y * 0.5f),
                             ImGuiCond_FirstUseEver);
 
     ImGui::SetNextWindowSize(winSz, ImGuiCond_FirstUseEver);
     ImGui::GetStyle().WindowRounding = 3.5;
+    
+    // Вызов твоего класса, который рисует вкладки и кнопки
     CyberMenu::render();
 }
