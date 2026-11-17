@@ -2134,76 +2134,52 @@ Pos.Y = (RadarY * 13);
         
  
                             if (Radar == 2  && IsLogin) {
-                            float lateralAngleView = (localPlayerController->ControlRotation.Yaw) - 90;
-                            
-                            FVector selfcoord = g_PlayerController->PlayerCameraManager->CameraCache.POV.Location;
-                            FVector Objectcoord = Player->RootComponent->RelativeLocation;
-                
-                             
-                             
-                            
-                             
-                            int Ev = 200;
-                            
-                            FVector2D radar = rotateCoord(lateralAngleView,FVector2D((selfcoord.X - Objectcoord.X) / Ev,(selfcoord.Y - Objectcoord.Y) / Ev));
-                            
-                            FVector2D 雷达位置 = {500,200};
-                            float 雷达大小 = 55;
-                            Canvas->K2_DrawLine({(float)雷达位置.X - (225 * 雷达大小 / 100),(float)雷达位置.Y},{(float)雷达位置.X + (225 * 雷达大小 / 100) ,(float)雷达位置.Y}, 1, FLinearColor(1.f,1.f,1.f,1.f));
-                            
-                            Canvas->K2_DrawLine({(float)雷达位置.X,(float)雷达位置.Y - (225 * 雷达大小 / 100)},{(float)雷达位置.X ,(float)雷达位置.Y + (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
+                        float lateralAngleView = (localPlayerController->ControlRotation.Yaw) - 90;
+                        
+                        FVector selfcoord = g_PlayerController->PlayerCameraManager->CameraCache.POV.Location;
+                        FVector Objectcoord = Player->RootComponent->RelativeLocation;
+                        
+                        int Ev = 200;
+                        
+                        FVector2D radar = rotateCoord(lateralAngleView,FVector2D((selfcoord.X - Objectcoord.X) / Ev,(selfcoord.Y - Objectcoord.Y) / Ev));
+                        
+                        FVector2D 雷达位置 = {500,200};
+                        float 雷达大小 = 55;
+                        Canvas->K2_DrawLine({(float)雷达位置.X - (225 * 雷达大小 / 100),(float)雷达位置.Y},{(float)雷达位置.X + (225 * 雷达大小 / 100) ,(float)雷达位置.Y}, 1, FLinearColor(1.f,1.f,1.f,1.f));
+                        Canvas->K2_DrawLine({(float)雷达位置.X,(float)雷达位置.Y - (225 * 雷达大小 / 100)},{(float)雷达位置.X ,(float)雷达位置.Y + (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
+                        Canvas->K2_DrawLine({(float)雷达位置.X  - (225 * 雷达大小 / 100),(float)雷达位置.Y - (225 * 雷达大小 / 100)},{(float)雷达位置.X  - (225 * 雷达大小 / 100) ,(float)雷达位置.Y + (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
+                        Canvas->K2_DrawLine({(float)雷达位置.X  + (225 * 雷达大小 / 100),(float)雷达位置.Y - (225 * 雷达大小 / 100)},{(float)雷达位置.X  + (225 * 雷达大小 / 100) ,(float)雷达位置.Y + (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
+                        Canvas->K2_DrawLine({(float)雷达位置.X - (225 * 雷达大小 / 100),(float)雷达位置.Y  - (225 * 雷达大小 / 100)},{(float)雷达位置.X + (225 * 雷达大小 / 100) ,(float)雷达位置.Y  - (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
+                        Canvas->K2_DrawLine({(float)雷达位置.X - (225 * 雷达大小 / 100),(float)雷达位置.Y  + (225 * 雷达大小 / 100)},{(float)雷达位置.X + (225 * 雷达大小 / 100) ,(float)雷达位置.Y  + (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
+                        
+                        DrawCircle(Canvas, (float)雷达位置.X + radar.X * (雷达大小 / 100),(float)雷达位置.Y + radar.Y  * (雷达大小 / 100),2,50, FLinearColor(1.0f,0.0f,0.0f,1.0f));
+                    } 
 
-
- 
-                            
-                            Canvas->K2_DrawLine({(float)雷达位置.X  - (225 * 雷达大小 / 100),(float)雷达位置.Y - (225 * 雷达大小 / 100)},{(float)雷达位置.X  - (225 * 雷达大小 / 100) ,(float)雷达位置.Y + (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
-                            
-                            Canvas->K2_DrawLine({(float)雷达位置.X  + (225 * 雷达大小 / 100),(float)雷达位置.Y - (225 * 雷达大小 / 100)},{(float)雷达位置.X  + (225 * 雷达大小 / 100) ,(float)雷达位置.Y + (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
-                            
-                            Canvas->K2_DrawLine({(float)雷达位置.X - (225 * 雷达大小 / 100),(float)雷达位置.Y  - (225 * 雷达大小 / 100)},{(float)雷达位置.X + (225 * 雷达大小 / 100) ,(float)雷达位置.Y  - (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
-                            
-                            Canvas->K2_DrawLine({(float)雷达位置.X - (225 * 雷达大小 / 100),(float)雷达位置.Y  + (225 * 雷达大小 / 100)},{(float)雷达位置.X + (225 * 雷达大小 / 100) ,(float)雷达位置.Y  + (225 * 雷达大小 / 100)}, 1, FLinearColor(1.f,1.f,1.f,1.f));
-                            
-                            
-                            DrawCircle(Canvas, (float)雷达位置.X + radar.X * (雷达大小 / 100),(float)雷达位置.Y + radar.Y  * (雷达大小 / 100),2,50, FLinearColor(1.0f,0.0f,0.0f,1.0f));
-                            
-                            } 
-
-
-            }
-                           
-            UGameplayStatics* gGameplayStatics = (UGameplayStatics*)UGameplayStatics::StaticClass();
-
-
-                    }
                 }
-}
-
+                   
+                UGameplayStatics* gGameplayStatics = (UGameplayStatics*)UGameplayStatics::StaticClass();
 
             }
 
-}
+        }  
 
-}
-g_LocalPlayer = localPlayer;
-g_PlayerController = localPlayerController;
-g_LocalController = localPlayerController;
+    g_LocalPlayer = localPlayer;
+    g_PlayerController = localPlayerController;
+    g_LocalController = localPlayerController;
 
-if (imgui::ESP || Settings::Aimbot::Tick) {
-    ApplyMemoryReferenceOptions(localPlayer, localPlayerController);
-    UpdateAutoFire(localPlayer, localPlayerController);
-    CaptureWorldEsp(localPlayer, localPlayerController);
-}
-
+  
+    if (imgui::ESP || Settings::Aimbot::Tick) {
+        ApplyMemoryReferenceOptions(localPlayer, localPlayerController);
+        UpdateAutoFire(localPlayer, localPlayerController);
+        CaptureWorldEsp(localPlayer, localPlayerController);
     }
-}
- 
-    
-     
 
+            }
+        } 
+    } 
+} 
 
-void *(*oProcessEvent)(UObject *pObj, UFunction *pFunc, void *pArgs);
-// HMOOD__TG@i_8_f
+void *(*oProcessEvent)(UObject *pObj, UFunction *pFunc, void *pArgs);// HMOOD__TG@i_8_f
     void *hkProcessEvent(UObject *pObj, UFunction *pFunc, void *pArgs) {
         if (pFunc) {
             if (pFunc->GetFullName() == ("Function Engine.HUD.ReceiveDrawHUD") ){
