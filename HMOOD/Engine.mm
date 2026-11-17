@@ -2180,7 +2180,11 @@ Pos.Y = (RadarY * 13);
 }
 
 
-            }}
+            }
+
+}
+
+}
 g_LocalPlayer = localPlayer;
 g_PlayerController = localPlayerController;
 g_LocalController = localPlayerController;
