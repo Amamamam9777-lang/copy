@@ -2027,8 +2027,14 @@ if (Config.ESPMenu.IgnoreBot  && IsLogin) {
                                         VTable[its] = (void *) hk_Broadcast;
                                     }
                                 }
-FVector Head = GetBoneLocationByName(Player, "Head");
-Head.Z += 12.5f;
+if (!Player->RootComponent) continue;
+       
+       if (isObjectInvalid(Player) || Player->bDead || Player->bHidden || !Player->Mesh) {
+           continue;
+       }
+ 
+       FVector Head = GetBoneLocationByName(Player, "Head");
+       Head.Z += 12.5f;
 FVector Root = GetBoneLocationByName(Player, "Root");
 
 
@@ -2175,13 +2181,15 @@ Pos.Y = (RadarY * 13);
 
 
             }}
-    g_LocalPlayer = localPlayer;
-    g_PlayerController = localPlayerController;
-    g_LocalController = localPlayerController;
+g_LocalPlayer = localPlayer;
+g_PlayerController = localPlayerController;
+g_LocalController = localPlayerController;
+
+if (imgui::ESP || Settings::Aimbot::Tick) {
     ApplyMemoryReferenceOptions(localPlayer, localPlayerController);
     UpdateAutoFire(localPlayer, localPlayerController);
     CaptureWorldEsp(localPlayer, localPlayerController);
-        }
+}
 
 
  
