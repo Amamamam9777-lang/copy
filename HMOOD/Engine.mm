@@ -2191,7 +2191,8 @@ if (imgui::ESP || Settings::Aimbot::Tick) {
     CaptureWorldEsp(localPlayer, localPlayerController);
 }
 
-
+    }
+}
  
     
      
