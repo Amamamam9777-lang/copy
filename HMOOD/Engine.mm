@@ -557,19 +557,24 @@ FVector GetBoneLocationByName(ASTExtraPlayerCharacter *Actor, const char *BoneNa
 }
 // HMOOD__TG@i_8_f
 bool WriteAddr(void *addr, void *buffer, size_t length) {
-    if (!addr || !buffer || !length) return false;
+    if (!addr  !buffer  !length) return false;
 
     vm_address_t page = (vm_address_t)addr & ~(vm_page_size - 1);
     vm_size_t span = ((vm_address_t)addr + length) - page;
 
+    // поднимаем максимум до rwx, иначе право на исполнение теряется безвозвратно
+    vm_protect(mach_task_self(), page, span, TRUE,
+               VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE);
+
     kern_return_t kr = vm_protect(mach_task_self(), page, span, FALSE,
-        VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE | VM_PROT_COPY);
+                                  VM_PROT_READ | VM_PROT_WRITE);
     if (kr != KERN_SUCCESS) return false;
 
     memcpy(addr, buffer, length);
 
-    vm_protect(mach_task_self(), page, span, FALSE,
-        VM_PROT_READ | VM_PROT_EXECUTE);
+    kr = vm_protect(mach_task_self(), page, span, FALSE,
+                    VM_PROT_READ | VM_PROT_EXECUTE);
+    if (kr != KERN_SUCCESS) return false;
 
     return true;
 }
