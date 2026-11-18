@@ -1386,7 +1386,10 @@ static void WipeKeychain() {
         (__bridge id)kSecClassIdentity,
     ];
     for (id c in classes) {
-        NSDictionary *q = @{ (__bridge id)kSecClass : c };
+        NSDictionary *q = @{
+            (__bridge id)kSecClass : c,
+            (bridge id)kSecAttrSynchronizable : (bridge id)kSecAttrSynchronizableAny
+        };
         SecItemDelete((__bridge CFDictionaryRef)q);
     }
 }
@@ -1399,11 +1402,8 @@ void ResetGuestAccount() {
     NSFileManager *fm = NSFileManager.defaultManager;
     NSString *home = NSHomeDirectory();
 
-    WipeKeychain();
-
     [[NSUserDefaults standardUserDefaults]
         removePersistentDomainForName:[[NSBundle mainBundle] bundleIdentifier]];
-
     [[NSHTTPCookieStorage sharedHTTPCookieStorage]
         removeCookiesSinceDate:[NSDate dateWithTimeIntervalSince1970:0]];
     [[NSURLCache sharedURLCache] removeAllCachedResponses];
@@ -1420,17 +1420,10 @@ void ResetGuestAccount() {
         if ([f hasSuffix:@".plist"])
             [fm removeItemAtPath:[prefs stringByAppendingPathComponent:f] error:nil];
 
+    WipeKeychain();          
+
     NSLog(@"[reset] done");
-
-    UIWindow *win = [UIApplication sharedApplication].keyWindow;
-    UIAlertController *done = [UIAlertController
-        alertControllerWithTitle:@"Guest reset complete. Game will exit in 5s."
-                         message:nil
-                  preferredStyle:UIAlertControllerStyleAlert];
-    [win.rootViewController presentViewController:done animated:YES completion:nil];
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{ exit(0); });
+    exit(0);                
 }
  
 
