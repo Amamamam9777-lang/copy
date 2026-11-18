@@ -562,13 +562,13 @@ bool WriteAddr(void *addr, void *buffer, size_t length) {
     vm_address_t page = (vm_address_t)addr & ~(vm_page_size - 1);
     vm_size_t span = ((vm_address_t)addr + length) - page;
 
-    kern_return_t kr = mach_vm_protect(mach_task_self(), page, span, FALSE,
+    kern_return_t kr = vm_protect(mach_task_self(), page, span, FALSE,
         VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE | VM_PROT_COPY);
     if (kr != KERN_SUCCESS) return false;
 
     memcpy(addr, buffer, length);
 
-    mach_vm_protect(mach_task_self(), page, span, FALSE,
+    vm_protect(mach_task_self(), page, span, FALSE,
         VM_PROT_READ | VM_PROT_EXECUTE);
 
     return true;
