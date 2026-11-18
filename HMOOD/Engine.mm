@@ -562,7 +562,6 @@ bool WriteAddr(void *addr, void *buffer, size_t length) {
     vm_address_t page = (vm_address_t)addr & ~(vm_page_size - 1);
     vm_size_t span = ((vm_address_t)addr + length) - page;
 
-    // поднимаем максимум до rwx, иначе право на исполнение теряется безвозвратно
     vm_protect(mach_task_self(), page, span, TRUE,
                VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE);
 
