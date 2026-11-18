@@ -557,7 +557,9 @@ FVector GetBoneLocationByName(ASTExtraPlayerCharacter *Actor, const char *BoneNa
 }
 // HMOOD__TG@i_8_f
 bool WriteAddr(void *addr, void *buffer, size_t length) {
-    if (!addr  !buffer  !length) return false;
+    if (addr == nullptr) return false;
+    if (buffer == nullptr) return false;
+    if (length == 0) return false;
 
     vm_address_t page = (vm_address_t)addr & ~(vm_page_size - 1);
     vm_size_t span = ((vm_address_t)addr + length) - page;
