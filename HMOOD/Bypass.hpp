@@ -114,6 +114,8 @@ inline void ApplyOne(uintptr_t addr, uint32_t want, int wide) {
 // ===================== хуки =====================
 inline void InstallInner(uintptr_t base);   // forward
 
+inline Status Apply();
+
 inline int (*o_AEA24)(void *, const char *, int, int);
 inline int h_AEA24(void *kv, const char *k, int d, int f) {
     if (k && strstr(k, "mt_sar2")) return 1;   // сессию не глушим
