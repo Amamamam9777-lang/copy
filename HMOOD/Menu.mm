@@ -2245,8 +2245,9 @@ namespace CyberMenu {
         if (hit(c, "##reset_guest", 644, 522, 313, 40))
             ImGui::OpenPopup("Reset guest account?");
         
-if (ImGui::Button("scan offsets", ImVec2(...))) {
- dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{ Scan::Run(); });
+if (ImGui::Button("scan offsets", ImVec2(120, 30))) {
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{ Scan::Run(); });
+}
 
 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 16));
         if (ImGui::BeginPopupModal("Reset guest account?", nullptr,
