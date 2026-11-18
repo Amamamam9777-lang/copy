@@ -1388,7 +1388,7 @@ static void WipeKeychain() {
     for (id c in classes) {
         NSDictionary *q = @{
             (__bridge id)kSecClass : c,
-            (bridge id)kSecAttrSynchronizable : (bridge id)kSecAttrSynchronizableAny
+            (__bridge id)kSecAttrSynchronizable : (__bridge id)kSecAttrSynchronizableAny
         };
         SecItemDelete((__bridge CFDictionaryRef)q);
     }
