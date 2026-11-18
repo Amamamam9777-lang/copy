@@ -30,6 +30,7 @@
 #include <string>
 #include <filesystem>
 #import "HideFunsion.h"
+#import <Security/Security.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -1376,55 +1377,61 @@ break;
 return "Vehicle";
 }
 // HMOOD__TG@i_8_f
-void ResetGuestAccount() {
-    NSFileManager *fm = [NSFileManager defaultManager];
-    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/Documents/ano_tmp", NSHomeDirectory()] error:nil];
-    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/Documents", NSHomeDirectory()] error:nil];
-    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/Library", NSHomeDirectory()] error:nil];
-    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/tmp", NSHomeDirectory()] error:nil];
-
-    NSString *prefsPath = [NSString stringWithFormat:@"%@/Library/Preferences", NSHomeDirectory()];
-    NSArray *prefsFiles = [fm contentsOfDirectoryAtPath:prefsPath error:nil];
-
-    NSArray *bundleIdentifiersToRemove = @[
-        @"tencent",   
-        @"ig",        
-        @"rekoo",     
-        @"vn",        
-        @"imobile",   
-        @"korean"     
+static void WipeKeychain() {
+    NSArray *classes = @[
+        (__bridge id)kSecClassGenericPassword,
+        (__bridge id)kSecClassInternetPassword,
+        (__bridge id)kSecClassKey,
+        (__bridge id)kSecClassCertificate,
+        (__bridge id)kSecClassIdentity,
     ];
-
-    for (NSString *file in prefsFiles) {
-        for (NSString *bundleId in bundleIdentifiersToRemove) {
-            if ([file containsString:bundleId] || [file hasSuffix:@".plist"]) {
-                [fm removeItemAtPath:[prefsPath stringByAppendingPathComponent:file] error:nil];
-                break;
-            }
-        }
+    for (id c in classes) {
+        NSDictionary *q = @{ (__bridge id)kSecClass : c };
+        SecItemDelete((__bridge CFDictionaryRef)q);
     }
-
-
-UIWindow *window= nil;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (!window) window = [UIApplication sharedApplication].keyWindow;
-#pragma clang diagnostic pop
-
-    UIViewController *rootVC = window.rootViewController;
-    UIAlertController *done = [UIAlertController alertControllerWithTitle:[NSString stringWithUTF8String:
-        TranslateMenuText("Guest reset complete. Game will exit in 5s.")]
-                                                                  message:nil
-                                                           preferredStyle:UIAlertControllerStyleAlert];
-    [rootVC presentViewController:done animated:YES completion:nil];
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{
-        exit(0);
-    });
 }
 
+void ResetGuestAccount() {
+    static bool busy = false;
+    if (busy) return;
+    busy = true;
+
+    NSFileManager *fm = NSFileManager.defaultManager;
+    NSString *home = NSHomeDirectory();
+
+    WipeKeychain();
+
+    [[NSUserDefaults standardUserDefaults]
+        removePersistentDomainForName:[[NSBundle mainBundle] bundleIdentifier]];
+
+    [[NSHTTPCookieStorage sharedHTTPCookieStorage]
+        removeCookiesSinceDate:[NSDate dateWithTimeIntervalSince1970:0]];
+    [[NSURLCache sharedURLCache] removeAllCachedResponses];
+
+    for (NSString *sub in @[@"Documents", @"Library", @"tmp"]) {
+        NSString *p = [home stringByAppendingPathComponent:sub];
+        [fm removeItemAtPath:p error:nil];
+        [fm createDirectoryAtPath:p withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+
+    NSString *prefs = [home stringByAppendingPathComponent:@"Library/Preferences"];
+    [fm createDirectoryAtPath:prefs withIntermediateDirectories:YES attributes:nil error:nil];
+    for (NSString *f in [fm contentsOfDirectoryAtPath:prefs error:nil])
+        if ([f hasSuffix:@".plist"])
+            [fm removeItemAtPath:[prefs stringByAppendingPathComponent:f] error:nil];
+
+    NSLog(@"[reset] done");
+
+    UIWindow *win = [UIApplication sharedApplication].keyWindow;
+    UIAlertController *done = [UIAlertController
+        alertControllerWithTitle:@"Guest reset complete. Game will exit in 5s."
+                         message:nil
+                  preferredStyle:UIAlertControllerStyleAlert];
+    [win.rootViewController presentViewController:done animated:YES completion:nil];
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{ exit(0); });
+}
  
 
 
