@@ -29,7 +29,7 @@
 #include "menu.h"
 #import <sys/sysctl.h>
 #import <sys/stat.h>
-#import "Bypass.hpp"
+#import "BypassChecker.hpp"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <pthread.h>
@@ -2357,23 +2357,26 @@ void RenderMenu() {
     ImVec2 scr = ImGui::GetIO().DisplaySize;
     ImVec2 winSz = ImVec2(635, 300);
 
-   // ================= НАШ БЛОК ПРОВЕРКИ СТАТУСА =================
-    if (MenDeal) {
-        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(320, 70), ImGuiCond_FirstUseEver);
-        if (ImGui::Begin("BypassStatusWindow", nullptr,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
-            static int tick = 0;
-            if ((tick++ % 30) == 0) Bypass::Verify();
-            const char *st = Bypass::Label();
-            bool ok = (Bypass::g_status == Bypass::Patched);
-            ImGui::Text("SECURITY STATUS:");
-            ImGui::TextColored(ok ? ImVec4(0,1,0,1) : ImVec4(1,0,0,1), "%s", st);
-        }
-        ImGui::End();
+    // ========================================================
+    // НАШ БЛОК ПРОВЕРКИ СТАТУСА (рисуем его отдельным окном в левом верхнем углу)
+    // ========================================================
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver); // Позиция: X=10, Y=10
+    ImGui::SetNextWindowSize(ImVec2(320, 70), ImGuiCond_FirstUseEver);
+    
+    // Рисуем окно. Убираем заголовок, чтобы выглядело стильно
+    ImGui::Begin("BypassStatusWindow", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+    
+    ImGui::Text("SECURITY STATUS:");
+    if (BypassChecker::IsAnogsPatched()) {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Anogs Bypass: ACTIVE (Protected)");
+    } else {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Anogs Bypass: FAILED (Update Offsets!)");
     }
-    // =============================================================
+    
+    ImGui::End();
+    // ========================================================
 
+    // Твой оригинальный код для главного окна меню
     ImGui::SetNextWindowPos(ImVec2(scr.x * 0.5f - winSz.x * 0.5f, scr.y * 0.5f - winSz.y * 0.5f),
                             ImGuiCond_FirstUseEver);
 
