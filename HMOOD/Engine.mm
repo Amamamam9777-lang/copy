@@ -35,6 +35,7 @@
 #include <string.h>
 #include "Vector3.hpp"
 #include "Vector2.hpp"
+#include "Bypass.hpp"
 #import <Foundation/Foundation.h>
 #import "UE4.h"
 #import "PubgLoad.h"
@@ -561,6 +562,41 @@ bool WriteAddr(void *addr, void *buffer, size_t length) {
     return mprotect((void *) ((kaddr) addr - ((kaddr) addr % page_size) - page_size), (size_t) size, PROT_EXEC | PROT_READ | PROT_WRITE) == 0 && memcpy(addr, buffer, length) != 0;
 }
 
+// ── inline hook: абсолютный переход + трамплин
+static void *AllocTramp() {
+    size_t pg = sysconf(_SC_PAGESIZE);
+    void *p = mmap(nullptr, pg, PROT_READ | PROT_WRITE,
+                   MAP_PRIVATE | MAP_ANON, -1, 0);
+    return (p == MAP_FAILED) ? nullptr : p;
+}
+
+void hook(uint64_t address, void *hookfn, void **orig) {
+    if (!address || !hookfn) { if (orig) *orig = nullptr; return; }
+
+    const uint32_t kLdr = 0x58000050;   // ldr x16, #8
+    const uint32_t kBr  = 0xD61F0200;   // br  x16
+
+    // трамплин: первые 16 байт оригинала + возврат на address+16
+    uint8_t *t = (uint8_t *)AllocTramp();
+    if (!t) { if (orig) *orig = nullptr; return; }
+
+    memcpy(t, (void *)address, 16);
+    uint64_t back = address + 16;
+    memcpy(t + 16, &kLdr, 4);
+    memcpy(t + 20, &kBr, 4);
+    memcpy(t + 24, &back, 8);
+    mprotect(t, sysconf(_SC_PAGESIZE), PROT_READ | PROT_EXEC);
+
+    if (orig) *orig = (void *)t;
+
+    // стаб на месте оригинала
+    uint8_t stub[16];
+    uint64_t target = (uint64_t)hookfn;
+    memcpy(stub, &kLdr, 4);
+    memcpy(stub + 4, &kBr, 4);
+    memcpy(stub + 8, &target, 8);
+    WriteAddr((void *)address, stub, 16);
+}
 
 class Rect2 {
 public:
@@ -2236,11 +2272,11 @@ void  *RTL_language(){
 // HMOOD__TG@i_8_f
 + (void)load
 {
-        FName::GNames = GetGNames();
-    while (!FName::GNames) {
-        FName::GNames = GetGNames();
-          sleep(1);
-    }
+    Bypass::Start();   
+
+    FName::GNames = GetGNames();
+    while (!FName::GNames) { FName::GNames = GetGNames(); usleep(1000);
+     }
     
     
     UObject::GUObjectArray = (FUObjectArray *) (obbbbl());
