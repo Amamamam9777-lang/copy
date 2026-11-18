@@ -564,18 +564,17 @@ bool WriteAddr(void *addr, void *buffer, size_t length) {
     vm_address_t page = (vm_address_t)addr & ~(vm_page_size - 1);
     vm_size_t span = ((vm_address_t)addr + length) - page;
 
-    vm_protect(mach_task_self(), page, span, TRUE,
-               VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE);
-
-    kern_return_t kr = vm_protect(mach_task_self(), page, span, FALSE,
-                                  VM_PROT_READ | VM_PROT_WRITE);
-    if (kr != KERN_SUCCESS) return false;
+    if (mprotect((void *)page, span, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) {
+        NSLog(@"[bypass] rwx fail errno=%d", errno);
+        return false;
+    }
 
     memcpy(addr, buffer, length);
 
-    kr = vm_protect(mach_task_self(), page, span, FALSE,
-                    VM_PROT_READ | VM_PROT_EXECUTE);
-    if (kr != KERN_SUCCESS) return false;
+    if (mprotect((void *)page, span, PROT_READ | PROT_EXEC) != 0) {
+        NSLog(@"[bypass] rx fail errno=%d", errno);
+        return false;
+    }
 
     return true;
 }
