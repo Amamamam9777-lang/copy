@@ -42,7 +42,6 @@
 #include <mach/mach.h>
 #include <mach/mach_host.h>
 #include <mach/vm_statistics.h>
-#include "BypassScan.h"
 
 // HMOOD__TG@i_8_f
 
@@ -2244,10 +2243,6 @@ namespace CyberMenu {
         c.text(686, 533, "RESET GUEST", 18, White, 260);
         if (hit(c, "##reset_guest", 644, 522, 313, 40))
             ImGui::OpenPopup("Reset guest account?");
-        
-if (ImGui::Button("scan offsets", ImVec2(120, 30))) {
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{ Scan::Run(); });
-}
 
 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 16));
         if (ImGui::BeginPopupModal("Reset guest account?", nullptr,
