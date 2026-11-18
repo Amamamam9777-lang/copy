@@ -2243,8 +2243,7 @@ namespace CyberMenu {
         c.text(686, 533, "RESET GUEST", 18, White, 260);
         if (hit(c, "##reset_guest", 644, 522, 313, 40))
             ImGui::OpenPopup("Reset guest account?");
-
-ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 16));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 16));
         if (ImGui::BeginPopupModal("Reset guest account?", nullptr,
                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar)) {
             MenuLocale::text("Reset guest account?");

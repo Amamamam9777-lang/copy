@@ -7,20 +7,20 @@
 class BypassChecker {
 public:
     static bool IsAnogsPatched() {
-    uintptr_t base = get_base("anogs");
-    if (!base) return false;
+        uintptr_t base = get_base("anogs");
+        if (!base) return false;
 
-    static const uintptr_t kTargets[] = {
-        0xFF3DC, 0x3DE48, 0xA6D8, 0x8CF3C, 0x7A0C8, 0x3D140, 0x12FEC,
-        0x13148, 0x134D8, 0x9834, 0x13238, 0x13284, 0x14D88, 0x13BB0, 0x9DB0
-    };
+        // Проверяем 4 патча NOP
+        bool nop1 = (*(uint32_t*)(base + 0x1139DC) == 0xD503201F);
+        bool nop2 = (*(uint32_t*)(base + 0x113A2C) == 0xD503201F);
+        bool nop3 = (*(uint32_t*)(base + 0x113A7C) == 0xD503201F);
+        bool nop4 = (*(uint32_t*)(base + 0x113ACC) == 0xD503201F);
+        
+        // Проверяем RET
+        bool ret1 = (*(uint32_t*)(base + 0x0FF3DC) == 0xD65F03C0);
 
-    int ok = 0;
-    for (uintptr_t off : kTargets)
-        if (*(uint32_t *)(base + off) == 0x52800000) ok++;
-
-    return ok == (int)(sizeof(kTargets) / sizeof(kTargets[0]));
-}
+        return (nop1 && nop2 && nop3 && nop4 && ret1);
+    }
 
 private:
     static uintptr_t get_base(const char* module_name) {
