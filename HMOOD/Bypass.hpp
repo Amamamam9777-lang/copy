@@ -114,8 +114,6 @@ inline void ApplyOne(uintptr_t addr, uint32_t want, int wide) {
 // ===================== хуки =====================
 inline void InstallInner(uintptr_t base);   // forward
 
-inline Status Apply();
-
 inline int (*o_AEA24)(void *, const char *, int, int);
 inline int h_AEA24(void *kv, const char *k, int d, int f) {
     if (k && strstr(k, "mt_sar2")) return 1;   // сессию не глушим
@@ -154,17 +152,8 @@ inline int (*o_13238)(void *, int);  inline int h_13238(void *, int) { return 0;
 // анкор инициализации SDK
 inline int (*o_Init)(void *);
 inline int (*o_InitEx)(void *, void *);
-
-inline int h_Init(void *a) {
-    if (!g_applied) Apply();
-    InstallInner(Find());
-    return o_Init ? o_Init(a) : 0;
-}
-inline int h_InitEx(void *a, void *b) {
-    if (!g_applied) Apply();
-    InstallInner(Find());
-    return o_InitEx ? o_InitEx(a, b) : 0;
-}
+inline int h_Init(void *a);
+inline int h_InitEx(void *a, void *b);
 
 struct Hook { uintptr_t off; void *fn; void **orig; const char *name; };
 
@@ -235,6 +224,18 @@ inline Status Apply() {
     return g_status = (done == total) ? Patched : Partial;
 }
 
+// обработчики анкоров — после Apply, чтобы видеть его определение
+inline int h_Init(void *a) {
+    if (!g_applied) Apply();
+    InstallInner(Find());
+    return o_Init ? o_Init(a) : 0;
+}
+inline int h_InitEx(void *a, void *b) {
+    if (!g_applied) Apply();
+    InstallInner(Find());
+    return o_InitEx ? o_InitEx(a, b) : 0;
+}
+
 // ===================== проверка =====================
 inline Status Verify() {
     uintptr_t b = Find();
@@ -284,6 +285,13 @@ inline void *Worker(void *) {
 }
 
 inline void Start() {
+    // определяем имя своего образа автоматически, без хардкода
+    Dl_info info;
+    if (dladdr((void *)&Start, &info) && info.dli_fname) {
+        const char *b = strrchr(info.dli_fname, '/');
+        if (b) g_self = b + 1;
+    }
+
     pthread_t th;
     if (pthread_create(&th, nullptr, Worker, nullptr) == 0) pthread_detach(th);
 }

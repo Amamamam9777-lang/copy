@@ -557,9 +557,21 @@ FVector GetBoneLocationByName(ASTExtraPlayerCharacter *Actor, const char *BoneNa
 }
 // HMOOD__TG@i_8_f
 bool WriteAddr(void *addr, void *buffer, size_t length) {
-    unsigned long page_size = sysconf(_SC_PAGESIZE);
-    unsigned long size = page_size * sizeof(kaddr);
-    return mprotect((void *) ((kaddr) addr - ((kaddr) addr % page_size) - page_size), (size_t) size, PROT_EXEC | PROT_READ | PROT_WRITE) == 0 && memcpy(addr, buffer, length) != 0;
+    if (!addr || !buffer || !length) return false;
+
+    vm_address_t page = (vm_address_t)addr & ~(vm_page_size - 1);
+    vm_size_t span = ((vm_address_t)addr + length) - page;
+
+    kern_return_t kr = mach_vm_protect(mach_task_self(), page, span, FALSE,
+        VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE | VM_PROT_COPY);
+    if (kr != KERN_SUCCESS) return false;
+
+    memcpy(addr, buffer, length);
+
+    mach_vm_protect(mach_task_self(), page, span, FALSE,
+        VM_PROT_READ | VM_PROT_EXECUTE);
+
+    return true;
 }
 
 // ── inline hook: абсолютный переход + трамплин
@@ -585,7 +597,10 @@ void hook(uint64_t address, void *hookfn, void **orig) {
     memcpy(t + 16, &kLdr, 4);
     memcpy(t + 20, &kBr, 4);
     memcpy(t + 24, &back, 8);
-    mprotect(t, sysconf(_SC_PAGESIZE), PROT_READ | PROT_EXEC);
+    if (mprotect(t, sysconf(_SC_PAGESIZE), PROT_READ | PROT_EXEC) != 0) {
+        if (orig) *orig = nullptr;
+        return;
+    }
 
     if (orig) *orig = (void *)t;
 
