@@ -1398,7 +1398,7 @@ static void WipeKeychain() {
 
             (__bridge id)kSecClass : c,
 
-            (bridge id)kSecAttrSynchronizable : (bridge id)kSecAttrSynchronizableAny
+            (__bridge id)kSecAttrSynchronizable : (__bridge id)kSecAttrSynchronizableAny
 
         };
 
