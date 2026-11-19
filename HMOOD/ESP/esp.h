@@ -6,7 +6,7 @@
 #include "../SDK.hpp"
 #include <vector>
 
-extern bool isObjectInvalid(SDK::UObject* obj);
+ 
 void Drawesp();
 void DrawWorldEsp();
 void CaptureWorldEsp(SDK::ASTExtraPlayerCharacter* player, SDK::ASTExtraPlayerController* controller);
@@ -35,10 +35,8 @@ UKismetMathLibrary* UMC = (UKismetMathLibrary*)UKismetMathLibrary::StaticClass()
     outActors.reserve(found.Num());
     for (int i = 0; i < found.Num(); i++) {
         AActor* a = found[i];
-if (!a) continue;
-
-if (isObjectInvalid((UObject*)a)) continue;
-if (!a->RootComponent) continue;
+        if (!a) continue;
+        if (!a->RootComponent) continue;
         if ((uintptr_t)a < 0x10000) continue;                
         if ((uintptr_t)a > 0xFFFFFFFFFFFF) continue;         
         if (a == nullptr) continue;

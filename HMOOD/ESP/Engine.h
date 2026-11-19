@@ -25,10 +25,14 @@
 #import <MetalKit/MetalKit.h>
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_metal.h"
+
+void ResetGuestAccount();
+
 NS_ASSUME_NONNULL_BEGIN
 
 
 @interface metalbiew : UIViewController
+
 
 + (void)showChange:(BOOL)open;
 
