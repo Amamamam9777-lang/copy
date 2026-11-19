@@ -1376,61 +1376,99 @@ break;
 return "Vehicle";
 }
 // HMOOD__TG@i_8_f
-void ResetGuestAccount() {
-    NSFileManager *fm = [NSFileManager defaultManager];
-    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/Documents/ano_tmp", NSHomeDirectory()] error:nil];
-    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/Documents", NSHomeDirectory()] error:nil];
-    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/Library", NSHomeDirectory()] error:nil];
-    [fm removeItemAtPath:[NSString stringWithFormat:@"%@/tmp", NSHomeDirectory()] error:nil];
+static void WipeKeychain() {
 
-    NSString *prefsPath = [NSString stringWithFormat:@"%@/Library/Preferences", NSHomeDirectory()];
-    NSArray *prefsFiles = [fm contentsOfDirectoryAtPath:prefsPath error:nil];
+    NSArray *classes = @[
 
-    NSArray *bundleIdentifiersToRemove = @[
-        @"tencent",   
-        @"ig",        
-        @"rekoo",     
-        @"vn",        
-        @"imobile",   
-        @"korean"     
-    ];
+        (__bridge id)kSecClassGenericPassword,
 
-    for (NSString *file in prefsFiles) {
-        for (NSString *bundleId in bundleIdentifiersToRemove) {
-            if ([file containsString:bundleId] || [file hasSuffix:@".plist"]) {
-                [fm removeItemAtPath:[prefsPath stringByAppendingPathComponent:file] error:nil];
-                break;
-            }
-        }
-    }
+        (__bridge id)kSecClassInternetPassword,
 
+        (__bridge id)kSecClassKey,
 
-UIWindow *window= nil;
+        (__bridge id)kSecClassCertificate,
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (!window) window = [UIApplication sharedApplication].keyWindow;
-#pragma clang diagnostic pop
+        (__bridge id)kSecClassIdentity,
 
-    UIViewController *rootVC = window.rootViewController;
-    UIAlertController *done = [UIAlertController alertControllerWithTitle:[NSString stringWithUTF8String:
-        TranslateMenuText("Guest reset complete. Game will exit in 5s.")]
-                                                                  message:nil
-                                                           preferredStyle:UIAlertControllerStyleAlert];
-    [rootVC presentViewController:done animated:YES completion:nil];
+    ];
 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{
-        exit(0);
-    });
+    for (id c in classes) {
+
+        NSDictionary *q = @{
+
+            (__bridge id)kSecClass : c,
+
+            (bridge id)kSecAttrSynchronizable : (bridge id)kSecAttrSynchronizableAny
+
+        };
+
+        SecItemDelete((__bridge CFDictionaryRef)q);
+
+    }
+
 }
 
- 
+void ResetGuestAccount() {
 
+    static bool busy = false;
 
- 
+    if (busy) return;
 
+    busy = true;
 
+
+
+    NSFileManager *fm = NSFileManager.defaultManager;
+
+    NSString *home = NSHomeDirectory();
+
+
+
+    [[NSUserDefaults standardUserDefaults]
+
+        removePersistentDomainForName:[[NSBundle mainBundle] bundleIdentifier]];
+
+    [[NSHTTPCookieStorage sharedHTTPCookieStorage]
+
+        removeCookiesSinceDate:[NSDate dateWithTimeIntervalSince1970:0]];
+
+    [[NSURLCache sharedURLCache] removeAllCachedResponses];
+
+
+
+    for (NSString *sub in @[@"Documents", @"Library", @"tmp"]) {
+
+        NSString *p = [home stringByAppendingPathComponent:sub];
+
+        [fm removeItemAtPath:p error:nil];
+
+        [fm createDirectoryAtPath:p withIntermediateDirectories:YES attributes:nil error:nil];
+
+    }
+
+
+
+    NSString *prefs = [home stringByAppendingPathComponent:@"Library/Preferences"];
+
+    [fm createDirectoryAtPath:prefs withIntermediateDirectories:YES attributes:nil error:nil];
+
+    for (NSString *f in [fm contentsOfDirectoryAtPath:prefs error:nil])
+
+        if ([f hasSuffix:@".plist"])
+
+            [fm removeItemAtPath:[prefs stringByAppendingPathComponent:f] error:nil];
+
+
+
+    WipeKeychain();          // ключи в самом конце
+
+
+
+    NSLog(@"[reset] done");
+
+    exit(0);              
+
+}
 
 
 // HMOOD__TG@i_8_f
